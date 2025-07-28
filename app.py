@@ -156,8 +156,36 @@ def extract_card_names(text: str) -> list[str]:
     filtered = [word.strip() for word in words if len(word.strip()) > 2 and word.strip().lower() not in ['the', 'and', 'or', 'but', 'for', 'with', 'from', 'into', 'during', 'including', 'until', 'against', 'among', 'throughout', 'despite', 'towards', 'upon']]
     return filtered[:5]  # Limit to 5 potential card names
 
+# For initial MVP of this app, I will use simple Streamlit password protection. This will be enhanced or opened up later.
+def check_password():
+    """Returns `True` if the user had the correct password."""
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets.get("password", "mtg2024"):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store password
+        else:
+            st.session_state["password_correct"] = False
+
+    # First run, show inputs for username + password.
+    if "password_correct" not in st.session_state:
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error.
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
+        st.error("😕 User not known or password incorrect")
+        return False
+    else:
+        # Password correct.
+        return True
+
 def main():
     """Main Streamlit app function."""
+    
+    # Check authentication first
+    if not check_password():
+        st.stop()
     
     # Initialize OpenAI client
     client = init_openai_client()
