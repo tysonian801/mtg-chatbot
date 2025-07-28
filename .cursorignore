@@ -1,0 +1,102 @@
+# Environment variables and secrets
+.env
+.env.*
+*.env
+secrets.json
+config.json
+credentials.json
+service-account-key.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Log files (may contain sensitive data)
+*.log
+logs/
+log/
+
+# Cache directories
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.coverage
+.mypy_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.ENV/
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local configuration files
+config.local.py
+settings.local.py
+local_settings.py
+
+# API keys and tokens (common patterns)
+*api_key*
+*api_token*
+*secret*
+*password*
+*token*
+*key*
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Database dumps
+*.dump
+*.sql
+
+# User-specific data
+user_data/
+personal/
+private/
+
+# Test data that might contain sensitive information
+test_data/
+fixtures/
+sample_data/
+
+# Documentation that might contain sensitive info
+docs/internal/
+docs/private/ 
