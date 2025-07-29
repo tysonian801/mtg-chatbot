@@ -272,8 +272,8 @@ def main():
     """Main Streamlit app function."""
     
     # Check authentication first
-    if not check_password():
-        st.stop()
+    # if not check_password():
+    #     st.stop()
     
     # Initialize OpenAI client
     client = init_openai_client()
