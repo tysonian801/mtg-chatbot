@@ -21,12 +21,12 @@ Version: 2.0
 import hashlib
 import os
 import re
+from typing import Optional
 
 import numpy as np
 import openai
 import requests
 import streamlit as st
-from typing import Optional
 
 # Page configuration
 st.set_page_config(
@@ -38,7 +38,7 @@ st.set_page_config(
 # Rule sections irrelevant to supported formats — omitted from the knowledge base
 # to reduce token usage and noise. Covers niche/discontinued casual variants,
 # Unfinity-only mechanics, and ante (banned everywhere).
-# TODO: determine if we should uncomment this- for now I 
+# TODO: determine if we should uncomment this- for now I
 OMIT_SECTIONS = {
 #     "123",  # Stickers (Unfinity/acorn only)
 #     "311",  # Planes (Planechase only)
@@ -63,6 +63,7 @@ OMIT_SECTIONS = {
 }
 
 
+# Initialize OpenAI client (cached so it's only created once per session)
 @st.cache_resource
 def init_openai_client():
     """
@@ -356,15 +357,18 @@ def main():
     st.title("🃏 MTG Rules Assistant")
     st.markdown("Get judge-quality answers to any MTG rules question.")
 
+    # Sidebar for settings
     with st.sidebar:
         st.header("Settings")
 
+        # Format selection
         st.subheader("Format")
         format_type = st.selectbox(
             "Select format for context:",
             ["Any Format", "Standard", "Modern", "Legacy", "Commander", "Limited"]
         )
 
+        # Response style
         st.subheader("Response Style")
         response_style = st.selectbox(
             "How detailed should the response be?",
@@ -402,6 +406,7 @@ def main():
     col1, col2 = st.columns([2, 1])
 
     with col1:
+        # Question input — pre-populated when an example button is clicked
         question = st.text_area(
             "Enter your MTG rules question:",
             value=st.session_state.pop("example_question", ""),
@@ -424,6 +429,7 @@ def main():
                 st.warning("Please enter a question.")
 
     with col2:
+        # Example questions
         st.subheader("Examples")
         examples = [
             "How does indestructible interact with -1/-1 counters?",
@@ -441,6 +447,7 @@ def main():
                 st.session_state.example_question = example
                 st.rerun()
 
+    # Footer
     st.markdown("---")
     st.caption("⚖️ This assistant provides guidance but is not a substitute for official MTG rules or judge rulings.")
 
