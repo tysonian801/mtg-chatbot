@@ -2,3 +2,5 @@ openai
 streamlit
 scrython
 python-dotenv
+requests
+numpy
