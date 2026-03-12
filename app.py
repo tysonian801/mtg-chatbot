@@ -169,6 +169,11 @@ def build_embeddings(rules_hash: str, api_key: str) -> tuple[list[str], np.ndarr
     chunks = build_rule_chunks(rules_text)
     client = openai.OpenAI(api_key=api_key)
 
+    # text-embedding-3-small allows 8191 tokens per item (~4 chars/token → ~32 000 chars).
+    # Truncate long chunks so the API never rejects the request.
+    MAX_CHUNK_CHARS = 30_000
+    chunks = [c[:MAX_CHUNK_CHARS] for c in chunks]
+
     all_embeddings = []
     batch_size = 500
     for i in range(0, len(chunks), batch_size):
