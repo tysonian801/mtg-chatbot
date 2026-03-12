@@ -301,7 +301,7 @@ def get_gpt_response(
 4. If card text is provided, reference it
 5. If the question involves the stack or timing, explain the sequence using priority rules (CR 116)
 6. For complex interactions, break down each step with rule citations
-7. When evaluating tap restrictions (e.g. summoning sickness), carefully identify *whose* ability is being activated. Summoning sickness (CR 302.6) restricts a creature's *own* activated abilities that include {{T}} in their cost — it does NOT prevent a creature from being tapped to pay the cost of another permanent's ability (e.g. Crew, Station, Convoke).
+7. SUMMONING SICKNESS (CR 302.6): A creature with summoning sickness CANNOT activate its own abilities that include {{T}} in the cost, and CANNOT attack. However, it CAN be tapped as the cost for another card's ability (e.g. the Station's "tap another creature you control" cost, Crew, Convoke). The restriction applies only to the creature activating its OWN ability — not to being tapped by an external effect or as a cost for someone else's ability. Example: a creature with summoning sickness CAN be tapped to crew a Vehicle or to satisfy Station's tap cost.
 
 **Format your answers with:**
 - A clear ruling summary upfront
