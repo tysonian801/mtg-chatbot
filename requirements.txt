@@ -4,3 +4,4 @@ scrython
 python-dotenv
 requests
 numpy
+tiktoken
