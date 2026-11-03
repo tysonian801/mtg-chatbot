@@ -21,12 +21,15 @@ Version: 2.0
 import hashlib
 import os
 import re
+from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
 import numpy as np
 import openai
 import requests
 import streamlit as st
+import tiktoken
 
 # Page configuration
 st.set_page_config(
@@ -65,11 +68,13 @@ OMIT_SECTIONS = {
 
 # Initialize OpenAI client (cached so it's only created once per session)
 @st.cache_resource
-def init_openai_client():
+def init_openai_client() -> openai.OpenAI:
     """
-    Initialize OpenAI client with API key from environment variables or Streamlit secrets.
+    Initialize OpenAI client with API key from Streamlit secrets, environment, or .env.
     Cached with st.cache_resource so the client is reused across reruns.
     """
+    # Resolve relative to this app; existing environment values retain precedence.
+    load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
     try:
         api_key = st.secrets.get("OPENAI_API_KEY")
     except Exception:
@@ -140,7 +145,14 @@ def build_rule_chunks(rules_text: str) -> list[str]:
                 continue
         if s.strip():
             chunks.append(s.strip())
-    return chunks
+    # Count actual tokens: rule numbers and symbols invalidate character estimates.
+    encoding = tiktoken.encoding_for_model("text-embedding-3-small")
+    bounded_chunks = []
+    for chunk in chunks:
+        tokens = encoding.encode(chunk, disallowed_special=())
+        for start in range(0, len(tokens), 8191):
+            bounded_chunks.append(encoding.decode(tokens[start:start + 8191]))
+    return bounded_chunks
 
 
 @st.cache_data(show_spinner=False)
@@ -167,22 +179,20 @@ def build_embeddings(rules_hash: str, api_key: str) -> tuple[list[str], np.ndarr
         return None, None
 
     chunks = build_rule_chunks(rules_text)
+    if not chunks:
+        return None, None
+
     client = openai.OpenAI(api_key=api_key)
-
-    # text-embedding-3-small allows 8191 tokens per item (~4 chars/token → ~32 000 chars).
-    # Truncate long chunks so the API never rejects the request.
-    MAX_CHUNK_CHARS = 30_000
-    chunks = [c[:MAX_CHUNK_CHARS] for c in chunks]
-
     all_embeddings = []
-    batch_size = 500
+    # 32 * 8191 stays below the 300,000-token aggregate request limit.
+    batch_size = 32
     for i in range(0, len(chunks), batch_size):
         batch = chunks[i:i + batch_size]
         response = client.embeddings.create(
             model="text-embedding-3-small",
             input=batch,
         )
-        all_embeddings.extend([e.embedding for e in response.data])
+        all_embeddings.extend([e.embedding for e in sorted(response.data, key=lambda e: e.index)])
 
     embeddings = np.array(all_embeddings, dtype=np.float32)
     # L2-normalize so retrieval is a simple dot product
@@ -354,7 +364,7 @@ def get_gpt_response(
             return f"❌ **Error getting response:** {error_msg}"
 
 
-def main():
+def main() -> None:
     """Main Streamlit app function."""
 
     client = init_openai_client()
@@ -397,7 +407,11 @@ def main():
                 st.write("Building knowledge base (may take ~30s on first load)...")
                 rules_hash = hashlib.md5(rules_text.encode()).hexdigest()
                 api_key = client.api_key
-                chunks, embeddings = build_embeddings(rules_hash, api_key)
+                try:
+                    chunks, embeddings = build_embeddings(rules_hash, api_key)
+                except openai.APIError:
+                    # API error bodies can contain request data; keep them out of the UI.
+                    st.error("OpenAI could not index the rules. Check API access and billing, then retry.")
 
                 if chunks is None:
                     status.update(label="Failed to build knowledge base", state="error")
